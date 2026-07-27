@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+.env
+*.png
+!examples/*.png
+.DS_Store
