@@ -1,3 +1,5 @@
+[![Run tests](https://github.com/satwik-jinna/hike-medical-doc-intelligence/actions/workflows/tests.yml/badge.svg)](https://github.com/satwik-jinna/hike-medical-doc-intelligence/actions/workflows/tests.yml)
+
 # Document Intelligence Pipeline - OCR + LLM Extraction with Failure-Mode Analysis
 
 A small, evidence-driven pipeline for extracting structured data from messy,
