@@ -1,4 +1,4 @@
-# Document Intelligence Pipeline — Findings
+# Document Intelligence Pipeline Findings
 
 ## 1. Motivation and Goal
 
@@ -59,7 +59,7 @@ Structured JSON output + low_confidence_fields + reasoning notes
 
 ### Failure Mode 1: Confident Hallucination
 
-**Document:** Jammu hospital card (first pipeline version — flat OCR text fed
+**Document:** Jammu hospital card (first pipeline version - flat OCR text fed
 directly to an LLM asked to "reconstruct" the document).
 
 **What happened:** The model produced a coherent-sounding structured output
@@ -84,9 +84,9 @@ relationships not directly stated in the text.
 cluster because doctor and patient info were vertically close together on
 the page, even though they were spatially separated left-to-right. Given
 this merged cluster, the model safely returned null for patient_name rather
-than guessing -- an improvement, but still not usable.
+than guessing - an improvement, but still not usable.
 
-**Fix:** Added column-aware clustering -- split text left/right (initially a
+**Fix:** Added column-aware clustering - split text left/right (initially a
 hardcoded boundary), then cluster vertically within each column. Correctly
 separated the doctor block from the patient block.
 
@@ -95,10 +95,10 @@ different column semantic (medications vs. diagnosis notes, not doctor vs.
 patient). The column split assumption was technically wrong for this
 document's layout, but the LLM's own semantic reasoning (recognizing "Mr"
 as a patient marker, "Dr." as a doctor marker) still recovered the correct
-answer -- showing the fix generalized better than expected.
+answer - showing the fix generalized better than expected.
 
 **Further fix:** Replaced the hardcoded column split with dynamic column
-detection -- analyzing the actual distribution of horizontal text positions
+detection - analyzing the actual distribution of horizontal text positions
 to find real gaps in the data, rather than assuming a fixed split point.
 This correctly grouped a patient's name with their age on a document where
 the hardcoded split had previously separated them, directly fixing a
@@ -114,12 +114,12 @@ prompting could recover accurate values. The model extracted a patient age
 that was almost certainly a misread fragment of a registration number.
 
 **Why it happened:** This is fundamentally different from the first two
-failures -- not a reasoning or structure problem, but a data problem. When
+failures - not a reasoning or structure problem, but a data problem. When
 the OCR layer never captured the information correctly, no downstream LLM
 engineering can manufacture it.
 
 **Fix:** Built an OCR-quality gate using Textract's own per-word confidence
-scores -- mean confidence across all WORD blocks, and the percentage of
+scores - mean confidence across all WORD blocks, and the percentage of
 words scoring below 50%. If either metric falls outside a calibrated
 threshold, the document is routed directly to human review without
 attempting LLM extraction.
@@ -131,7 +131,7 @@ attempting LLM extraction.
 | Trauma center (Bengali) | 56.73% | 47.17% | Routed to human review |
 | Personal study notes | 67.88% | 26.83% | Routed to human review |
 | Jammu hospital card | 70.3% | 30.23% | Routed to human review (borderline) |
-| Psychiatric prescription | 81.36% | 11.19% | Passed -- extracted correctly |
+| Psychiatric prescription | 81.36% | 11.19% | Passed - extracted correctly |
 
 The two-metric gate proved non-redundant: one document passed on mean
 confidence alone at a looser threshold but was still correctly caught by the
@@ -148,7 +148,7 @@ genuinely validated against only about five documents; a larger sample
 deliberately, for failure analysis only).
 
 **What happened:** Even in a forced/bypassed run, most fields were reasonably
-extracted or honestly flagged as low-confidence -- but doctor_names silently
+extracted or honestly flagged as low-confidence - but doctor_names silently
 returned an empty list, and patient_gender/patient_age silently returned
 null, with no distinction between "the model looked and found genuinely
 nothing" versus "the model didn't really try because the data was messy." A
@@ -156,16 +156,16 @@ downstream system consuming this output would have no way to tell these
 apart.
 
 **Why it matters:** This is arguably more dangerous than Failure Mode 1's
-confident hallucination, because it's quieter -- a null/empty value blends
+confident hallucination, because it's quieter - a null/empty value blends
 invisibly into a schema, whereas a wrong guess at least has a chance of
 being caught on manual review.
 
-**Fix:** Added an explicit NOT_FOUND convention to the extraction prompt --
+**Fix:** Added an explicit NOT_FOUND convention to the extraction prompt - 
 for scalar (string) fields, the literal string "NOT_FOUND" instead of null;
 for list fields, a list containing "NOT_FOUND" instead of an empty list.
 
 **First attempt (partial fix):** Scalar fields correctly returned
-"NOT_FOUND". List fields still returned an empty list -- the model didn't
+"NOT_FOUND". List fields still returned an empty list - the model didn't
 generalize the instruction to list types on the first try.
 
 **Root cause identified:** The prompt instruction was written in a way that
@@ -177,7 +177,7 @@ scalar-field case and a list-field case. Re-ran the same forced analysis:
 doctor_names now correctly returns ["NOT_FOUND"], consistent with the
 scalar fields.
 
-This is a good example of iterative, evidence-driven debugging -- the first
+This is a good example of iterative, evidence-driven debugging - the first
 fix was tested, found to be incomplete, the gap was root-caused, and a
 second, more explicit fix resolved it, confirmed by a repeat test on the
 exact same failing case.
@@ -187,7 +187,7 @@ exact same failing case.
 Built a first-stage classifier that runs before extraction, deciding which
 of five schemas to apply: prescription, fee_receipt, referral,
 insurance_form, or other. This is the direct mechanism for generalizable
-prompts and easy onboarding of new customers -- adding support for a new
+prompts and easy onboarding of new customers - adding support for a new
 document type is a schema registry addition (a new dictionary entry), not a
 prompt rewrite.
 
@@ -207,7 +207,7 @@ everything.
 2. No self-consistency testing (running the same document through
    extraction multiple times to check for stable output).
 3. Document classifier only validated on prescription-type documents.
-4. No model-version comparison -- reproducing the "prompts overfit to one
+4. No model-version comparison - reproducing the "prompts overfit to one
    model version" problem by running the same extraction across two model
    versions and measuring the accuracy delta would be a valuable next step.
 5. The registration_number field is ambiguous when both a doctor's and a
