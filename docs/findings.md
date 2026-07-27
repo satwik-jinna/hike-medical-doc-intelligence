@@ -8,7 +8,7 @@ pipelines work, but prompts aren't generalizable across new customers, document
 classification is inconsistent, and there's no benchmarking/evaluation
 infrastructure to prove changes actually help.
 
-The goal of this project was to reproduce this problem directly — build a
+The goal of this project was to reproduce this problem directly - build a
 small document-intelligence pipeline (OCR to structured extraction) against
 real, messy, handwritten medical documents, deliberately find where it breaks,
 and fix the actual root causes rather than patching symptoms.
