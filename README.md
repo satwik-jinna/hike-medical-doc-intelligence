@@ -68,7 +68,7 @@ python -m src.pipeline path/to/document.png
 ```
 
 ## Status / Known Limitations
-- Quality threshold calibrated against ~5 documents — needs a larger
+- Quality threshold calibrated against ~5 documents - needs a larger
   validation set before production use
 - No self-consistency testing across repeated runs yet
 - Document classifier only validated on prescription-type documents
