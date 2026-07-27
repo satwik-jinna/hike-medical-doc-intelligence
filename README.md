@@ -19,9 +19,9 @@ column assumptions, OCR quality floors, and silent field omission.
 
 ## Key findings
 See [docs/findings.md](docs/findings.md) for the full write-up. Summary:
-four distinct failure modes found and fixed — confident hallucination,
+four distinct failure modes found and fixed - confident hallucination,
 column-assumption mismatch, an OCR quality floor no prompting can fix, and
-silent field omission — each with before/after evidence.
+silent field omission - each with before/after evidence.
 
 ## Architecture
 
