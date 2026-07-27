@@ -1,7 +1,7 @@
-# Document Intelligence Pipeline — OCR + LLM Extraction with Failure-Mode Analysis
+# Document Intelligence Pipeline - OCR + LLM Extraction with Failure-Mode Analysis
 
 A small, evidence-driven pipeline for extracting structured data from messy,
-real-world medical documents — built to explore where OCR + LLM extraction
+real-world medical documents - built to explore where OCR + LLM extraction
 pipelines actually break, not just to show a happy-path demo.
 
 ## What this does
