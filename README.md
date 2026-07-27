@@ -22,37 +22,42 @@ column-assumption mismatch, an OCR quality floor no prompting can fix, and
 silent field omission — each with before/after evidence.
 
 ## Architecture
+
+```
 Image file
-   │
-   ▼
+   |
+   v
 [1] AWS Textract (analyze_document, FORMS + TABLES)
-   │
-   ▼
+   |
+   v
 [2] OCR Quality Gate
-   │  - mean word confidence
-   │  - % of words below 50% confidence
-   │  - if below threshold → route to human review, STOP (no LLM call)
-   │
-   ▼ (only if quality passes)
+   |   - mean word confidence
+   |   - % of words below 50% confidence
+   |   - if below threshold -> route to human review, STOP (no LLM call)
+   |
+   v (only if quality passes)
 [3] Dynamic Column Detection
-   │  - detects real gaps in horizontal (left) position distribution
-   │  - splits into N columns (not a hardcoded assumption of 2)
-   │  - clusters lines vertically within each column
-   │
-   ▼
+   |   - detects real gaps in horizontal (left) position distribution
+   |   - splits into N columns (not a hardcoded assumption of 2)
+   |   - clusters lines vertically within each column
+   |
+   v
 [4] Document Type Classification (LLM call #1)
-   │  - classifies into: prescription / fee_receipt / referral / insurance_form / other
-   │  - if classification confidence is low → route to human review, STOP
-   │
-   ▼ (only if classification confident)
+   |   - classifies into: prescription / fee_receipt / referral / insurance_form / other
+   |   - if classification confidence is low -> route to human review, STOP
+   |
+   v (only if classification confident)
 [5] Schema-Routed Structured Extraction (LLM call #2)
-   │  - uses a schema specific to the classified document type
-   │  - explicit rules distinguishing "uncertain but present" vs "genuinely absent"
-   │  - "NOT_FOUND" convention applied to both scalar and list fields
-   │
-   ▼
+   |   - uses a schema specific to the classified document type
+   |   - explicit rules distinguishing "uncertain but present" vs "genuinely absent"
+   |   - "NOT_FOUND" convention applied to both scalar and list fields
+   |
+   v
 Structured JSON output + low_confidence_fields + reasoning notes
-This is a genuine two-LLM-call pipeline (classification, then extraction) sitting on top of one OCR call, with a hard quality gate before any LLM cost is even spent.
+```
+
+This is a genuine two-LLM-call pipeline (classification, then extraction) sitting
+on top of one OCR call, with a hard quality gate before any LLM cost is even spent.
 
 ## Usage
 ```bash
