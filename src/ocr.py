@@ -1,9 +1,24 @@
+"""
+OCR extraction and quality assessment using AWS Textract.
+
+This module handles the first two stages of the pipeline: running Textract's
+FORMS + TABLES analysis on a document image, and computing a document-level
+confidence score used to gate whether extraction should even be attempted.
+"""
 import boto3
 
 textract = boto3.client('textract')
 
 
-def run_textract(image_path: str):
+def run_textract(image_path: str) -> list:
+    """Run AWS Textract's analyze_document on an image file.
+
+    Args:
+        image_path: Path to a PNG/JPEG document image.
+
+    Returns:
+        The list of Textract Block objects (LINE, WORD, KEY_VALUE_SET, etc.)
+    """
     with open(image_path, 'rb') as doc_file:
         doc_bytes = doc_file.read()
     response = textract.analyze_document(
